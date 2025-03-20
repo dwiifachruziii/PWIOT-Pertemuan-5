@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Monitoring Sensor Infrared dan Lampu WS2818B</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: white;
+            font-family: 'Arial', sans-serif;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        .status-badge {
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        .status-on {
+            background-color: #28a745;
+            color: white;
+        }
+        .status-off {
+            background-color: #dc3545;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container text-center">
+        <h2 class="mb-4">Monitoring Sensor Infrared dan Lampu WS2818B</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card text-center bg-dark text-white">
+                    <div class="card-header bg-info">Status Sensor Infrared</div>
+                    <div class="card-body">
+                        <h3 id="sensorStatus">Loading...</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card text-center bg-dark text-white">
+                    <div class="card-header bg-info">Status Lampu WS2818B</div>
+                    <div class="card-body">
+                        <h3 id="lampStatus">Loading...</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mt-4">
+            <button class="btn btn-warning" onclick="window.location.href='recordtable.html'">
+                <i class="fas fa-history"></i> Lihat Riwayat Data
+            </button>
+        </div>
+    </div>
+
+    <!-- Load Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script>
+        // Konfigurasi Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDQta2iiCWHvrjzJW649XK5MEEL2asfOvU",
+            authDomain: "pwiotdwifa.firebaseapp.com",
+            databaseURL: "https://pwiotdwifa-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "pwiotdwifa",
+            storageBucket: "pwiotdwifa.appspot.com",
+            messagingSenderId: "911086092983",
+            appId: "1:911086092983:web:a58cbf26ab4b75342c8332"
+        };
+
+        // Inisialisasi Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Fungsi untuk update status sensor dan lampu
+        function updateStatus() {
+            database.ref("records").orderByKey().limitToLast(1).once("child_added")
+                .then(snapshot => {
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+
+                        // Update Status Sensor
+                        document.getElementById("sensorStatus").innerHTML = data.object_detected === "Yes"
+                            ? '<span class="status-badge status-on">Objek Terdeteksi</span>'
+                            : '<span class="status-badge status-off">Tidak Ada Objek</span>';
+
+                        // Update Status Lampu
+                        document.getElementById("lampStatus").innerHTML = data.lamp_status === "Red"
+                            ? '<span class="status-badge status-off">Lampu Merah</span>'
+                            : '<span class="status-badge status-on">Lampu Hijau</span>';
+                    } else {
+                        document.getElementById("sensorStatus").innerText = "Data tidak ditemukan!";
+                        document.getElementById("lampStatus").innerText = "Data tidak ditemukan!";
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching data:", error);
+                    document.getElementById("sensorStatus").innerText = "Error loading data!";
+                    document.getElementById("lampStatus").innerText = "Error loading data!";
+                });
+        }
+
+        // Panggil fungsi saat halaman dimuat
+        updateStatus();
+    </script>
+</body>
+</html>

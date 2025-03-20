@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Riwayat Data Sensor Infrared dan Lampu WS2818B</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <style>
+      body {
+        background: linear-gradient(135deg, #1e3c72, #2a5298);
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        color: white;
+      }
+      .container {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        color: black;
+      }
+      .table-container {
+        overflow-x: auto;
+      }
+      th {
+        background-color: #004080;
+        color: white;
+        padding: 15px;
+      }
+      td {
+        padding: 12px 15px;
+        text-align: center;
+        border-bottom: 1px solid #ddd;
+      }
+      .status-badge {
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-weight: bold;
+      }
+      .status-on {
+        background-color: #28a745;
+        color: white;
+      }
+      .status-off {
+        background-color: #dc3545;
+        color: white;
+      }
+      .back-button {
+        background-color: #004080;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+      .back-button:hover {
+        background-color: #002a5e;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="text-center mb-3">
+        <h2><i class="fas fa-history"></i> Riwayat Data Sensor Infrared dan Lampu WS2818B</h2>
+      </div>
+      <button class="back-button mb-3" onclick="window.location.href='index.html'">
+        <i class="fas fa-arrow-left"></i> Kembali
+      </button>
+      <div class="table-container">
+        <table id="recordTable" class="table table-bordered">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Status Sensor</th>
+              <th>Status Lampu</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <!-- Data akan diisi melalui JavaScript -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Load Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script>
+      // Konfigurasi Firebase
+      const firebaseConfig = {
+        apiKey: "AIzaSyDQta2iiCWHvrjzJW649XK5MEEL2asfOvU",
+        authDomain: "pwiotdwifa.firebaseapp.com",
+        databaseURL: "https://pwiotdwifa-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "pwiotdwifa",
+        storageBucket: "pwiotdwifa.appspot.com",
+        messagingSenderId: "911086092983",
+        appId: "1:911086092983:web:a58cbf26ab4b75342c8332"
+      };
+
+      // Inisialisasi Firebase
+      firebase.initializeApp(firebaseConfig);
+      const database = firebase.database();
+
+      // Fungsi untuk memuat data dari Firebase
+      function loadRecordData() {
+        const recordRef = database.ref("records");
+
+        recordRef.once("value")
+          .then(snapshot => {
+            const records = snapshot.val();
+            const tableBody = document.getElementById("tableBody");
+            tableBody.innerHTML = "";
+
+            if (!records) {
+              tableBody.innerHTML = "<tr><td colspan='3'>Data tidak tersedia</td></tr>";
+              return;
+            }
+
+            let number = 1;
+            for (const key in records) {
+              const record = records[key];
+              const row = `
+                <tr>
+                  <td>${number}</td>
+                  <td>
+                    <span class="status-badge ${record.object_detected === "Yes" ? "status-on" : "status-off"}">
+                      ${record.object_detected === "Yes" ? "Objek Terdeteksi" : "Tidak Ada Objek"}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="status-badge ${record.lamp_status === "Red" ? "status-off" : "status-on"}">
+                      ${record.lamp_status === "Red" ? "Lampu Merah" : "Lampu Hijau"}
+                    </span>
+                  </td>
+                </tr>`;
+              tableBody.innerHTML += row;
+              number++;
+            }
+          })
+          .catch(error => {
+            console.error("Error fetching data:", error);
+            document.getElementById("tableBody").innerHTML = "<tr><td colspan='3'>Gagal memuat data</td></tr>";
+          });
+      }
+
+      // Panggil fungsi saat halaman dimuat
+      window.onload = loadRecordData;
+    </script>
+  </body>
+</html>
